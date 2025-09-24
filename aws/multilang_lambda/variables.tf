@@ -22,3 +22,4 @@ variable "handler" {
   description = "Lambda handler"
   type        = string
 }
+
