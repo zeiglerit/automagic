@@ -1,9 +1,0 @@
-*.zip
-__pycache__/
-.terraform/
-terraform.tfstate
-terraform.tfstate.*
-*.log
-*.bak
-tools/google-cloud-sdk/
-**/google-cloud-sdk/
