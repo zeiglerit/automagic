@@ -1,5 +1,7 @@
+aws_region = "us-east-1"
+
 aws_iam_role_arn = "arn:aws:iam::558162184322:role/TerraformExecutionRole"
-s3_bucket = "automagic-lambda-packages"
+s3_bucket        = "automagic-lambda-packages"
 
 lambda_functions = {
   r_lambda_custom    = "lambda-packages/r_lambda_custom.zip"
