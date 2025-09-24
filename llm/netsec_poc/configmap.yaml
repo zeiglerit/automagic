@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: issue-data
+  namespace: netsec
+data:
+  security.txt: |
+    {
+      "Unpatched Exchange Server": 5,
+      "Weak AD password policy": 2,
+      "Outdated NGFW signatures": 3,
+      "CVE-2023-4567": 4,
+      "Open RDP port on public IP": 5,
+      "Expired TLS certificate": 3,
+      "Unencrypted SMB traffic": 4,
+      "Missing endpoint protection on VDI": 3,
+      "Shadow admin account detected": 5,
+      "Firewall rule misconfiguration": 4,
+      "LDAP anonymous bind enabled": 3,
+      "Stale service accounts": 2,
+      "Unpatched Linux kernel": 4,
+      "Suspicious PowerShell execution": 5,
+      "No MFA on privileged accounts": 4
+    }
+  breakfix.txt: |
+    {
+      "Printer spooler crash": 2,
+      "VDI login failure": 3,
+      "DHCP scope exhaustion": 4,
+      "Server BSOD": 5,
+      "User unable to access shared drive": 2,
+      "Slow SQL query performance": 3,
+      "Backup job failed": 4,
+      "Hypervisor host rebooted unexpectedly": 5,
+      "Outlook not syncing": 2,
+      "Group Policy not applying": 3,
+      "DNS resolution failure": 4,
+      "VM snapshot corruption": 5,
+      "Windows Update stuck": 3,
+      "Linux service not starting": 2,
+      "AD replication delay": 4
+    }

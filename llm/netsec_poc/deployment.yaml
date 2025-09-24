@@ -1,0 +1,8 @@
+volumeMounts:
+  - name: issue-volume
+    mountPath: /app/data
+
+volumes:
+  - name: issue-volume
+    configMap:
+      name: issue-data

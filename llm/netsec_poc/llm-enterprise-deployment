@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-enterprise
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llm-enterprise
+  template:
+    metadata:
+      labels:
+        app: llm-enterprise
+    spec:
+      containers:
+      - name: llm-enterprise
+        image: your-dockerhub/llm-enterprise:latest
+        ports:
+        - containerPort: 9080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-enterprise-service
+spec:
+  selector:
+    app: llm-enterprise
+  ports:
+  - protocol: TCP
+    port: 9080
+    targetPort: 9080
+  type: NodePort

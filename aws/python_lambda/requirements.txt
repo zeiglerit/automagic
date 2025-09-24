@@ -1,0 +1,6 @@
+openai
+langchain
+numpy
+matplotlib
+requests
+pydantic

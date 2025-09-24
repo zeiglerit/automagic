@@ -1,0 +1,17 @@
+{
+  "Unpatched Exchange Server": 5,
+  "Weak AD password policy": 2,
+  "Outdated NGFW signatures": 3,
+  "CVE-2023-4567": 4,
+  "Open RDP port on public IP": 5,
+  "Expired TLS certificate": 3,
+  "Unencrypted SMB traffic": 4,
+  "Missing endpoint protection on VDI": 3,
+  "Shadow admin account detected": 5,
+  "Firewall rule misconfiguration": 4,
+  "LDAP anonymous bind enabled": 3,
+  "Stale service accounts": 2,
+  "Unpatched Linux kernel": 4,
+  "Suspicious PowerShell execution": 5,
+  "No MFA on privileged accounts": 4
+}

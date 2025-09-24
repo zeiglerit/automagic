@@ -1,0 +1,17 @@
+{
+  "Printer spooler crash": 2,
+  "VDI login failure": 3,
+  "DHCP scope exhaustion": 4,
+  "Server BSOD": 5,
+  "User unable to access shared drive": 2,
+  "Slow SQL query performance": 3,
+  "Backup job failed": 4,
+  "Hypervisor host rebooted unexpectedly": 5,
+  "Outlook not syncing": 2,
+  "Group Policy not applying": 3,
+  "DNS resolution failure": 4,
+  "VM snapshot corruption": 5,
+  "Windows Update stuck": 3,
+  "Linux service not starting": 2,
+  "AD replication delay": 4
+}
