@@ -9,30 +9,12 @@ variable "aws_iam_role_arn" {
   type        = string
 }
 
-variable "function_name" {
-  description = "Name of the Lambda function"
-  type        = string
-}
-
 variable "s3_bucket" {
   description = "S3 bucket containing Lambda zip"
   type        = string
 }
 
-variable "s3_key" {
-  description = "S3 key for Lambda zip file"
-  type        = string
-}
-variable "gcp_project" {
-  description = "GCP project ID"
-  type        = string
-}
-
-variable "gcp_region" {
-  description = "GCP region"
-  type        = string
-}
-variable "lambda_function_names" {
-  description = "List of Lambda function names to manage"
-  type        = list(string)
+variable "lambda_functions" {
+  description = "Map of Lambda function names to their S3 zip paths"
+  type        = map(string)
 }
