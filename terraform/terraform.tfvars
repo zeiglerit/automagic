@@ -1,4 +1,4 @@
-aws_iam_role_arn = "arn:aws:iam::123456789012:role/your-role-name"
+aws_iam_role_arn = "arn:aws:iam::558162184322:role/TerraformExecutionRole"
 s3_bucket        = "your-s3-bucket-name"
 
 lambda_functions = {
