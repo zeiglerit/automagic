@@ -19,3 +19,11 @@ output "python_lambda_function_name" {
 output "python_lambda_arn" {
   value = module.r_lambda["python_ai_lambda"].lambda_arn
 }
+
+output "function_name" {
+  value = aws_lambda_function.this.function_name
+}
+
+output "lambda_arn" {
+  value = aws_lambda_function.this.arn
+}
