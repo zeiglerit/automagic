@@ -32,3 +32,7 @@ variable "gcp_region" {
   description = "GCP region"
   type        = string
 }
+variable "lambda_function_names" {
+  description = "List of Lambda function names to manage"
+  type        = list(string)
+}

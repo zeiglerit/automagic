@@ -23,3 +23,7 @@ module "r_lambda" {
   runtime        = "provided.al2"
   handler        = "bootstrap"
 }
+module "lambda_deploy" {
+  source                = "../modules/lambda"
+  lambda_function_names = var.lambda_function_names
+}
