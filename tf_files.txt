@@ -1,0 +1,9 @@
+./aws/multilang_lambda/main.tf
+./aws/multilang_lambda/outputs.tf
+./aws/multilang_lambda/variables.tf
+./terraform/main.tf
+./terraform/outputs.tf
+./terraform/providers/aws.tf
+./terraform/providers/azure.tf
+./terraform/providers/gcp.tf
+./terraform/variables.tf

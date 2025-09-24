@@ -4,7 +4,8 @@
     {
       "Effect": "Allow",
       "Principal": {
-        "Service": "lambda.amazonaws.com"
+        "Service": "lambda.amazonaws.com",
+        "AWS": "arn:aws:iam::558162184322:user/zeigler"
       },
       "Action": "sts:AssumeRole"
     }
