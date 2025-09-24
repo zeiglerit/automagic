@@ -24,4 +24,5 @@ module "r_lambda" {
   s3_key        = each.value
   runtime       = "provided.al2"
   handler       = "bootstrap"
+  aws_iam_role_arn  = var.aws_iam_role_arn
 }

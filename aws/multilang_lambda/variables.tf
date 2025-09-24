@@ -23,3 +23,7 @@ variable "handler" {
   type        = string
 }
 
+variable "aws_iam_role_arn" {
+  description = "IAM role ARN for the Lambda function"
+  type        = string
+}
