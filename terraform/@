@@ -12,4 +12,4 @@ s3_bucket        = "automagic-lambda-packages"
 lambda_functions = {
   r_lambda_custom    = "r_lambda.zip"
   python_ai_lambda   = "python_ai_lambda.zip"
-}
+

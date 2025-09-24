@@ -4,6 +4,12 @@ variable "aws_region" {
   default     = "us-east-2"
 }
 
+variable "function_name" {}
+variable "s3_key" {}
+variable "handler" {}
+variable "runtime" {}
+variable "lambda_role_arn" {}
+
 variable "aws_iam_role_arn" {
   description = "IAM role ARN for Terraform to assume"
   type        = string
