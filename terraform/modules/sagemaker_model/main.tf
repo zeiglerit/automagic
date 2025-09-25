@@ -4,6 +4,6 @@ resource "aws_sagemaker_model" "this" {
 
   primary_container {
     image          = var.image_uri
-    model_data_url = "s3://${var.s3_bucket}/${var.s3_key}"
+    #model_data_url = "s3://${var.s3_bucket}/${var.s3_key}"
   }
 }
