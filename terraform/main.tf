@@ -19,4 +19,7 @@ module "sagemaker_model" {
   model_name     = "automagic-xgboost"
   execution_role = module.iam_roles.lambda_exec_arn
   image_uri      = "811284229777.dkr.ecr.us-east-2.amazonaws.com/xgboost:latest"
+  s3_bucket      = var.s3_bucket
+  s3_key         = var.s3_key
 }
+
