@@ -1,0 +1,5 @@
+aws ecr describe-repositories --repository-names "$PRIVATE_REPO" --region "$REGION"
+aws ecr create-repository --repository-name "$PRIVATE_REPO" --region "$REGION"
+docker pull "$PUBLIC_IMAGE"
+docker tag "$PUBLIC_IMAGE" "$PRIVATE_IMAGE"
+docker push "$PRIVATE_IMAGE"
