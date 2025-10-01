@@ -12,15 +12,39 @@ reset='\033[0m'
 RG="automagic-rg"
 AKS_NAME="automagic-aks"
 ACR_NAME="automagicacr"
-IMAGE_NAME="insightedge-train:latest"
-K8S_JOB_PATH="$REPO_ROOT/k8s/train-job.yaml"
+IMAGE_NAME="insightedge-train"
+IMAGE_TAG="latest"
 LOCATION="eastus"
-VM_SIZE="Standard_B2s"         # Quota-safe: 2 vCPUs
-NODE_COUNT=1                   # Stay within 2 vCPU quota
-MAX_SURGE="0"                  # Avoid surge node overhead
-K8S_VERSION="1.33.3"           # Latest supported version
+VM_SIZE="Standard_B2s"
+NODE_COUNT=1
+K8S_VERSION="1.33.3"
+K8S_JOB_PATH="$REPO_ROOT/k8s/train-job.yaml"
+DOCKER_CONTEXT="$REPO_ROOT/docker/insightedge"
 
-echo -e "${yellow}Step 1: Provisioning AKS cluster '${AKS_NAME}'${reset}"
+echo -e "${yellow}Step 1: Creating resource group '${RG}' if missing${reset}"
+az group show --name "$RG" &>/dev/null || az group create --name "$RG" --location "$LOCATION"
+
+echo -e "${yellow}Step 2: Creating ACR '${ACR_NAME}' if missing${reset}"
+if az acr show --name "$ACR_NAME" --resource-group "$RG" &>/dev/null; then
+  echo -e "${green}ACR '$ACR_NAME' already exists${reset}"
+else
+  az acr create \
+    --name "$ACR_NAME" \
+    --resource-group "$RG" \
+    --sku Basic \
+    --location "$LOCATION" \
+    --admin-enabled true
+  echo -e "${green}ACR '$ACR_NAME' created${reset}"
+fi
+
+echo -e "${yellow}Step 3: Building and pushing Docker image '${IMAGE_NAME}:${IMAGE_TAG}'${reset}"
+az acr login --name "$ACR_NAME"
+docker build -t "$IMAGE_NAME:$IMAGE_TAG" "$DOCKER_CONTEXT"
+docker tag "$IMAGE_NAME:$IMAGE_TAG" "$ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG"
+docker push "$ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG"
+echo -e "${green}Image pushed to ACR${reset}"
+
+echo -e "${yellow}Step 4: Provisioning AKS cluster '${AKS_NAME}'${reset}"
 if az aks show --name "$AKS_NAME" --resource-group "$RG" &>/dev/null; then
   echo -e "${green}AKS cluster '${AKS_NAME}' already exists${reset}"
 else
@@ -36,22 +60,22 @@ else
   echo -e "${green}AKS cluster '${AKS_NAME}' created${reset}"
 fi
 
-echo -e "${yellow}Step 2: Attaching ACR '${ACR_NAME}' to AKS${reset}"
+echo -e "${yellow}Step 5: Attaching ACR to AKS${reset}"
 az aks update \
   --name "$AKS_NAME" \
   --resource-group "$RG" \
   --attach-acr "$ACR_NAME"
 echo -e "${green}ACR attached to AKS${reset}"
 
-echo -e "${yellow}Step 3: Getting AKS credentials${reset}"
+echo -e "${yellow}Step 6: Getting AKS credentials${reset}"
 az aks get-credentials --resource-group "$RG" --name "$AKS_NAME" --overwrite-existing
 echo -e "${green}Kubeconfig updated${reset}"
 
-echo -e "${yellow}Step 4: Deploying Kubernetes job${reset}"
+echo -e "${yellow}Step 7: Deploying Kubernetes job${reset}"
 kubectl apply -f "$K8S_JOB_PATH"
 echo -e "${green}Job submitted to AKS${reset}"
 
-echo -e "${yellow}Step 5: Monitoring job status${reset}"
+echo -e "${yellow}Step 8: Monitoring job status${reset}"
 kubectl get jobs
 kubectl get pods --selector=job-name=insightedge-train
 
