@@ -98,7 +98,7 @@ echo -e "${green}JupyterLab started at http://localhost:$JUPYTER_PORT${reset}"
 echo -e "${green}Completed 4/4${reset}"
 
 if [[ "$deploy_aks" =~ ^[Yy]$ ]]; then
-  "$REPO_ROOT/scripts/insightedge/deploy_aks.sh"
+  "$REPO_ROOT/docker/insightedge/deploy_aks.sh"
 
   echo "AKS cluster deployed and job submitted"
   echo "Checking job and pod status..."
