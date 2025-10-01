@@ -17,6 +17,8 @@ TARGET="cpu-cluster"
 VM_SIZE="Standard_B2s"
 LOCATION="eastus"
 
+read -p "Deploy Kubernetes cluster for app? (y/n): " deploy_aks
+
 echo "Checking for pipreqs..."
 if ! command -v pipreqs &>/dev/null; then
   echo "Installing pipreqs..."
@@ -94,5 +96,17 @@ pkill -f "jupyter-lab.*--port=$JUPYTER_PORT" && echo -e "${yellow}Killed existin
 nohup jupyter lab --no-browser --ip=127.0.0.1 --port=$JUPYTER_PORT > "$LOG_DIR/jupyter.out" 2>&1 &
 echo -e "${green}JupyterLab started at http://localhost:$JUPYTER_PORT${reset}"
 echo -e "${green}Completed 4/4${reset}"
+
+if [[ "$deploy_aks" =~ ^[Yy]$ ]]; then
+  "$REPO_ROOT/scripts/insightedge/deploy_aks.sh"
+
+  echo "AKS cluster deployed and job submitted"
+  echo "Checking job and pod status..."
+
+  kubectl get jobs
+  kubectl get pods --selector=job-name=insightedge-train
+else
+  echo " AKS deployment skipped"
+fi
 
 echo -e "${green}✅ All steps completed. Pipeline finished.${reset}"
