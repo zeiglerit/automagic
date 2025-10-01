@@ -18,6 +18,7 @@ VM_SIZE="Standard_B2s"
 LOCATION="eastus"
 
 read -p "Deploy Kubernetes cluster for app? (y/n): " deploy_aks
+read -p "Run OWASP Top 10 audit? (y/n): " run_owasp
 
 echo "Checking for pipreqs..."
 if ! command -v pipreqs &>/dev/null; then
@@ -99,14 +100,27 @@ echo -e "${green}Completed 4/4${reset}"
 
 if [[ "$deploy_aks" =~ ^[Yy]$ ]]; then
   "$REPO_ROOT/docker/insightedge/deploy_aks.sh"
-
   echo "AKS cluster deployed and job submitted"
   echo "Checking job and pod status..."
 
+  az aks get-credentials --resource-group "$RESOURCE_GROUP" --name "$AKS_NAME" --overwrite-existing
   kubectl get jobs
   kubectl get pods --selector=job-name=insightedge-train
 else
-  echo " AKS deployment skipped"
+  echo "AKS deployment skipped"
+fi
+
+echo "Running unit tests with unittest..."
+python3 -m unittest discover -s "$REPO_ROOT/tests" -p "*.py"
+echo "Unit tests completed"
+
+if [[ "$run_owasp" =~ ^[Yy]$ ]]; then
+  echo "Running OWASP Top 10 audit (Python)..."
+  pip install --quiet bandit
+  bandit -r "$REPO_ROOT" -lll
+  echo "OWASP audit completed"
+else
+  echo "OWASP audit skipped"
 fi
 
 echo -e "${green}✅ All steps completed. Pipeline finished.${reset}"
