@@ -29,7 +29,6 @@ else
     --name "$AKS_NAME" \
     --node-vm-size "$VM_SIZE" \
     --node-count "$NODE_COUNT" \
-    --max-surge "$MAX_SURGE" \
     --kubernetes-version "$K8S_VERSION" \
     --enable-addons monitoring \
     --generate-ssh-keys \
