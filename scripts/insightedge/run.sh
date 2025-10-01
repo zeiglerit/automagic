@@ -25,12 +25,10 @@ PYTHONPATH="$REPO_ROOT" python "$REPO_ROOT/scripts/insightedge/train.py" --train
 echo -e "${green}Completed 1/4${reset}"
 
 echo -e "${yellow}Step 2: Launching TensorBoard${reset}"
-if pgrep -f "tensorboard.*--port $TB_PORT" > /dev/null; then
-  echo -e "${yellow}TensorBoard port $TB_PORT already in use. Skipping launch.${reset}"
-else
-  nohup tensorboard --logdir "$LOG_DIR" --port $TB_PORT --bind_all > "$LOG_DIR/tensorboard.out" 2>&1 &
-  echo -e "${green}TensorBoard started at http://localhost:$TB_PORT${reset}"
-fi
+pkill -f "tensorboard.*--port $TB_PORT" && echo -e "${yellow}Killed existing TensorBoard on port $TB_PORT${reset}"
+
+nohup tensorboard --logdir "$LOG_DIR" --port $TB_PORT --bind_all > "$LOG_DIR/tensorboard.out" 2>&1 &
+echo -e "${green}TensorBoard started at http://localhost:$TB_PORT${reset}"
 echo -e "${green}Completed 2/4${reset}"
 
 echo -e "${yellow}Step 3: Verifying Azure ML compute target${reset}"
@@ -67,13 +65,11 @@ az ml job create --file "$REPO_ROOT/deploy/job.yml" \
   --workspace-name "$WS" || echo -e "${red}Azure ML job submission failed${reset}"
 echo -e "${green}Completed 3/4${reset}"
 
-echo -e "${yellow}Step 4: Launching JupyterLab${reset}"
-if pgrep -f "jupyter-lab.*--port=$JUPYTER_PORT" > /dev/null; then
-  echo -e "${yellow}JupyterLab already running at http://localhost:$JUPYTER_PORT${reset}"
-else
-  nohup jupyter lab --no-browser --ip=127.0.0.1 --port=$JUPYTER_PORT > "$LOG_DIR/jupyter.out" 2>&1 &
-  echo -e "${green}JupyterLab started at http://localhost:$JUPYTER_PORT${reset}"
-fi
+echo -e "${yellow}Step 4/4: Launching JupyterLab${reset}"
+pkill -f "jupyter-lab.*--port=$JUPYTER_PORT" && echo -e "${yellow}Killed existing JupyterLab on port $JUPYTER_PORT${reset}"
+
+nohup jupyter lab --no-browser --ip=127.0.0.1 --port=$JUPYTER_PORT > "$LOG_DIR/jupyter.out" 2>&1 &
+echo -e "${green}JupyterLab started at http://localhost:$JUPYTER_PORT${reset}"
 echo -e "${green}Completed 4/4${reset}"
 
 echo -e "${green}All steps completed. Pipeline finished.${reset}"
