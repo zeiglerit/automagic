@@ -1,24 +1,26 @@
-[I 2025-10-01 13:27:55.827 ServerApp] jupyter_lsp | extension was successfully linked.
-[I 2025-10-01 13:27:55.831 ServerApp] jupyter_server_terminals | extension was successfully linked.
-[I 2025-10-01 13:27:55.835 ServerApp] jupyterlab | extension was successfully linked.
-[I 2025-10-01 13:27:55.839 ServerApp] notebook | extension was successfully linked.
-[I 2025-10-01 13:27:56.079 ServerApp] notebook_shim | extension was successfully linked.
-[I 2025-10-01 13:27:56.091 ServerApp] notebook_shim | extension was successfully loaded.
-[I 2025-10-01 13:27:56.103 ServerApp] jupyter_lsp | extension was successfully loaded.
-[I 2025-10-01 13:27:56.104 ServerApp] jupyter_server_terminals | extension was successfully loaded.
-[I 2025-10-01 13:27:56.106 LabApp] JupyterLab extension loaded from /home/user/venvs/jupyter-env/lib/python3.12/site-packages/jupyterlab
-[I 2025-10-01 13:27:56.112 LabApp] JupyterLab application directory is /home/user/venvs/jupyter-env/share/jupyter/lab
-[I 2025-10-01 13:27:56.113 LabApp] Extension Manager is 'pypi'.
-[I 2025-10-01 13:27:56.157 ServerApp] jupyterlab | extension was successfully loaded.
-[I 2025-10-01 13:27:56.161 ServerApp] notebook | extension was successfully loaded.
-[I 2025-10-01 13:27:56.162 ServerApp] Serving notebooks from local directory: /mnt/c/Users/Me/Documents/git/automagic
-[I 2025-10-01 13:27:56.163 ServerApp] Jupyter Server 2.17.0 is running at:
-[I 2025-10-01 13:27:56.163 ServerApp] http://127.0.0.1:8888/lab?token=c9e97ca5458f162d6fdb22ade762fa464e075506b3c26143
-[I 2025-10-01 13:27:56.163 ServerApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
-[C 2025-10-01 13:27:56.166 ServerApp] 
+[I 2025-10-01 13:37:41.542 ServerApp] jupyter_lsp | extension was successfully linked.
+[I 2025-10-01 13:37:41.546 ServerApp] jupyter_server_terminals | extension was successfully linked.
+[I 2025-10-01 13:37:41.551 ServerApp] jupyterlab | extension was successfully linked.
+[I 2025-10-01 13:37:41.556 ServerApp] notebook | extension was successfully linked.
+[I 2025-10-01 13:37:41.788 ServerApp] notebook_shim | extension was successfully linked.
+[I 2025-10-01 13:37:41.802 ServerApp] notebook_shim | extension was successfully loaded.
+[I 2025-10-01 13:37:41.811 ServerApp] jupyter_lsp | extension was successfully loaded.
+[I 2025-10-01 13:37:41.813 ServerApp] jupyter_server_terminals | extension was successfully loaded.
+[I 2025-10-01 13:37:41.815 LabApp] JupyterLab extension loaded from /home/user/venvs/jupyter-env/lib/python3.12/site-packages/jupyterlab
+[I 2025-10-01 13:37:41.815 LabApp] JupyterLab application directory is /home/user/venvs/jupyter-env/share/jupyter/lab
+[I 2025-10-01 13:37:41.816 LabApp] Extension Manager is 'pypi'.
+[I 2025-10-01 13:37:41.864 ServerApp] jupyterlab | extension was successfully loaded.
+[I 2025-10-01 13:37:41.867 ServerApp] notebook | extension was successfully loaded.
+[I 2025-10-01 13:37:41.868 ServerApp] Serving notebooks from local directory: /mnt/c/Users/Me/Documents/git/automagic
+[I 2025-10-01 13:37:41.869 ServerApp] Jupyter Server 2.17.0 is running at:
+[I 2025-10-01 13:37:41.869 ServerApp] http://127.0.0.1:8888/lab?token=a9786837a1207eddc36e710732229f5fa8f81c17bd695866
+[I 2025-10-01 13:37:41.869 ServerApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 2025-10-01 13:37:41.872 ServerApp] 
     
     To access the server, open this file in a browser:
-        file:///home/user/.local/share/jupyter/runtime/jpserver-204249-open.html
+        file:///home/user/.local/share/jupyter/runtime/jpserver-210244-open.html
     Or copy and paste one of these URLs:
-        http://127.0.0.1:8888/lab?token=c9e97ca5458f162d6fdb22ade762fa464e075506b3c26143
-[I 2025-10-01 13:27:57.300 ServerApp] Skipped non-installed server(s): basedpyright, bash-language-server, dockerfile-language-server-nodejs, javascript-typescript-langserver, jedi-language-server, julia-language-server, pyrefly, pyright, python-language-server, python-lsp-server, r-languageserver, sql-language-server, texlab, typescript-language-server, unified-language-server, vscode-css-languageserver-bin, vscode-html-languageserver-bin, vscode-json-languageserver-bin, yaml-language-server
+        http://127.0.0.1:8888/lab?token=a9786837a1207eddc36e710732229f5fa8f81c17bd695866
+[I 2025-10-01 13:37:42.909 ServerApp] Skipped non-installed server(s): basedpyright, bash-language-server, dockerfile-language-server-nodejs, javascript-typescript-langserver, jedi-language-server, julia-language-server, pyrefly, pyright, python-language-server, python-lsp-server, r-languageserver, sql-language-server, texlab, typescript-language-server, unified-language-server, vscode-css-languageserver-bin, vscode-html-languageserver-bin, vscode-json-languageserver-bin, yaml-language-server
+[C 2025-10-01 13:37:39.338 ServerApp] received signal 15, stopping
+[I 2025-10-01 13:37:39.347 ServerApp] Shutting down 5 extensions
