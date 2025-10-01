@@ -7,8 +7,13 @@ yellow='\033[1;33m'
 red='\033[0;31m'
 reset='\033[0m'
 
+CONFIG_PATH="$REPO_ROOT/scripts/insightedge/config.json"
+
 echo -e "${yellow}Step 1/4: Training InsightEdge model${reset}"
-PYTHONPATH="$REPO_ROOT" python "$REPO_ROOT/scripts/insightedge/train.py" || { echo -e "${red}Training failed${reset}"; exit 1; }
+PYTHONPATH="$REPO_ROOT" python "$REPO_ROOT/scripts/insightedge/train.py" --training_config "$CONFIG_PATH" || {
+  echo -e "${red}Training failed${reset}"
+  exit 1
+}
 echo -e "${green}Completed 1/4${reset}"
 
 echo -e "${yellow}Step 2/4: Launching TensorBoard${reset}"

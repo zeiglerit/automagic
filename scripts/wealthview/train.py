@@ -1,6 +1,8 @@
 import tensorflow as tf
 from scripts.shared.logging import get_tensorboard_callback
+import os
 
+os.makedirs("outputs", exist_ok=True)
 # Load and preprocess Fashion MNIST data
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.fashion_mnist.load_data()
 x_train, x_test = x_train / 255.0, x_test / 255.0

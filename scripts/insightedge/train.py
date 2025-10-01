@@ -1,24 +1,62 @@
+import argparse
+import json
+import os
 import tensorflow as tf
-from scripts.shared.logging import get_tensorboard_callback
 
-(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
-x_train, x_test = x_train / 255.0, x_test / 255.0
+# Default training config
+default_config = {
+    "epochs": 5,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "validation_split": 0.1,
+    "model_path": "outputs/mnist_model.keras"
+}
 
-model = tf.keras.models.Sequential([
-    tf.keras.layers.Flatten(input_shape=(28, 28)),
-    tf.keras.layers.Dense(128, activation='relu'),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Dense(10)
-])
+def load_config(path):
+    config = default_config.copy()
+    if path and os.path.exists(path):
+        with open(path) as f:
+            user_config = json.load(f)
+        config.update(user_config)  # Only override specified keys
+    return config
 
-model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+def run_training(config):
+    os.makedirs(os.path.dirname(config["model_path"]), exist_ok=True)
 
-tensorboard_cb = get_tensorboard_callback("insightedge")
+    (x_train, y_train), _ = tf.keras.datasets.mnist.load_data()
+    x_train = x_train / 255.0
 
-model.fit(x_train, y_train, epochs=5,
-          validation_data=(x_test, y_test),
-          callbacks=[tensorboard_cb])
+    model = tf.keras.Sequential([
+        tf.keras.layers.Input(shape=(28, 28)),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Dense(10, activation='softmax')
+    ])
 
-model.save("outputs/mnist_model")
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=config["learning_rate"]),
+        loss='sparse_categorical_crossentropy',
+        metrics=['accuracy']
+    )
+
+    model.fit(
+        x_train, y_train,
+        epochs=config["epochs"],
+        batch_size=config["batch_size"],
+        validation_split=config["validation_split"]
+    )
+
+    model.save(config["model_path"])
+    print(f"✅ Model saved to {config['model_path']}")
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--training_config", type=str, help="Path to JSON config file")
+    args = parser.parse_args()
+
+    config = load_config(args.training_config)
+    run_training(config)
+
+if __name__ == "__main__":
+    main()
