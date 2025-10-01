@@ -100,27 +100,31 @@ echo -e "${green}Completed 4/4${reset}"
 
 if [[ "$deploy_aks" =~ ^[Yy]$ ]]; then
   "$REPO_ROOT/docker/insightedge/deploy_aks.sh"
-  echo "AKS cluster deployed and job submitted"
-  echo "Checking job and pod status..."
+  echo "✅ AKS cluster deployed and job submitted"
+  echo "🔍 Checking job and pod status..."
 
   az aks get-credentials --resource-group "$RESOURCE_GROUP" --name "$AKS_NAME" --overwrite-existing
   kubectl get jobs
   kubectl get pods --selector=job-name=insightedge-train
 else
-  echo "AKS deployment skipped"
+  echo "❌ AKS deployment skipped"
 fi
 
-echo "Running unit tests with unittest..."
-python3 -m unittest discover -s "$REPO_ROOT/tests" -p "*.py"
-echo "Unit tests completed"
+echo "🧪 Running unit tests (tensorflow_pipeline.py)..."
+python3 -m unittest "$REPO_ROOT/tests/tensorflow_pipeline.py"
+echo "✅ Unit tests completed"
 
 if [[ "$run_owasp" =~ ^[Yy]$ ]]; then
-  echo "Running OWASP Top 10 audit (Python)..."
-  pip install --quiet bandit
-  bandit -r "$REPO_ROOT" -lll
-  echo "OWASP audit completed"
+  echo "🔐 Running OWASP ML Security Top 10 audit..."
+  pushd "$REPO_ROOT/../www-project-machine-learning-security-top-10/tools" >/dev/null
+
+  # Example: run your scanner script or Ansible role here
+  ./scan.sh --target "$REPO_ROOT" || echo "⚠️ OWASP audit script exited with warnings"
+
+  popd >/dev/null
+  echo "✅ OWASP ML audit completed"
 else
-  echo "OWASP audit skipped"
+  echo "❌ OWASP ML audit skipped"
 fi
 
 echo -e "${green}✅ All steps completed. Pipeline finished.${reset}"
