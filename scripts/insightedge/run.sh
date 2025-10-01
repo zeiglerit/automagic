@@ -65,7 +65,7 @@ az ml job create --file "$REPO_ROOT/deploy/job.yml" \
   --workspace-name "$WS" || echo -e "${red}Azure ML job submission failed${reset}"
 echo -e "${green}Completed 3/4${reset}"
 
-echo -e "${yellow}Step 4/4: Launching JupyterLab${reset}"
+echo -e "${yellow}Step 4: Launching JupyterLab${reset}"
 pkill -f "jupyter-lab.*--port=$JUPYTER_PORT" && echo -e "${yellow}Killed existing JupyterLab on port $JUPYTER_PORT${reset}"
 
 nohup jupyter lab --no-browser --ip=127.0.0.1 --port=$JUPYTER_PORT > "$LOG_DIR/jupyter.out" 2>&1 &
