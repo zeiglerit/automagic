@@ -2,17 +2,21 @@
 
 set -e
 
-RG="automagic-rg"
-AKS_NAME="automagic-aks"
-ACR_NAME="automagicacr"
-IMAGE_NAME="insightedge-train:latest"
-K8S_JOB_PATH="k8s/train-job.yaml"
-LOCATION="eastus"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../.. && pwd)"
 
 green='\033[0;32m'
 yellow='\033[1;33m'
 red='\033[0;31m'
 reset='\033[0m'
+
+RG="automagic-rg"
+AKS_NAME="automagic-aks"
+ACR_NAME="automagicacr"
+IMAGE_NAME="insightedge-train:latest"
+K8S_JOB_PATH="$REPO_ROOT/k8s/train-job.yaml"
+LOCATION="eastus"
+VM_SIZE="Standard_B2s"
+K8S_VERSION="1.33.3"
 
 echo -e "${yellow}Step 1: Provisioning AKS cluster '${AKS_NAME}'${reset}"
 if az aks show --name "$AKS_NAME" --resource-group "$RG" &>/dev/null; then
@@ -21,6 +25,8 @@ else
   az aks create \
     --resource-group "$RG" \
     --name "$AKS_NAME" \
+    --node-vm-size "$VM_SIZE" \
+    --kubernetes-version "$K8S_VERSION" \
     --node-count 2 \
     --enable-addons monitoring \
     --generate-ssh-keys \
