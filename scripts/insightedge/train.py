@@ -21,11 +21,17 @@ def load_config(path):
     return config
 
 def run_training(config):
+    import os
+    import tensorflow as tf
+
+    # Ensure output directory exists
     os.makedirs(os.path.dirname(config["model_path"]), exist_ok=True)
 
+    # Load and preprocess MNIST data
     (x_train, y_train), _ = tf.keras.datasets.mnist.load_data()
     x_train = x_train / 255.0
 
+    # Define model architecture
     model = tf.keras.Sequential([
         tf.keras.layers.Input(shape=(28, 28)),
         tf.keras.layers.Flatten(),
@@ -34,21 +40,29 @@ def run_training(config):
         tf.keras.layers.Dense(10, activation='softmax')
     ])
 
+    # Compile model with config-driven hyperparameters
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=config["learning_rate"]),
         loss='sparse_categorical_crossentropy',
         metrics=['accuracy']
     )
 
+    # Optional: TensorBoard logging
+    log_dir = "logs"
+    tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
+
+    # Train model
     model.fit(
         x_train, y_train,
         epochs=config["epochs"],
         batch_size=config["batch_size"],
-        validation_split=config["validation_split"]
+        validation_split=config["validation_split"],
+        callbacks=[tensorboard_cb]
     )
 
+    # Save model
     model.save(config["model_path"])
-    print(f"✅ Model saved to {config['model_path']}")
+    print(f"Model saved to {config['model_path']}")
 
 def main():
     parser = argparse.ArgumentParser()
