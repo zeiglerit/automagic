@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../.. && pwd)"
+#REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../.. && pwd)"
 
 green='\033[0;32m'
 yellow='\033[1;33m'
