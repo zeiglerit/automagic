@@ -15,8 +15,10 @@ ACR_NAME="automagicacr"
 IMAGE_NAME="insightedge-train:latest"
 K8S_JOB_PATH="$REPO_ROOT/k8s/train-job.yaml"
 LOCATION="eastus"
-VM_SIZE="Standard_B2s"
-K8S_VERSION="1.33.3"
+VM_SIZE="Standard_B2s"         # Quota-safe: 2 vCPUs
+NODE_COUNT=1                   # Stay within 2 vCPU quota
+MAX_SURGE="0"                  # Avoid surge node overhead
+K8S_VERSION="1.33.3"           # Latest supported version
 
 echo -e "${yellow}Step 1: Provisioning AKS cluster '${AKS_NAME}'${reset}"
 if az aks show --name "$AKS_NAME" --resource-group "$RG" &>/dev/null; then
@@ -26,8 +28,9 @@ else
     --resource-group "$RG" \
     --name "$AKS_NAME" \
     --node-vm-size "$VM_SIZE" \
+    --node-count "$NODE_COUNT" \
+    --max-surge "$MAX_SURGE" \
     --kubernetes-version "$K8S_VERSION" \
-    --node-count 2 \
     --enable-addons monitoring \
     --generate-ssh-keys \
     --location "$LOCATION"
