@@ -27,3 +27,5 @@
 [W 2025-10-01 13:42:37.472 ServerApp] 401 POST /login?next=%2Flab%3F (@127.0.0.1) 1.36ms referer=http://localhost:8888/login?next=%2Flab%3F
 [W 2025-10-01 13:42:44.090 ServerApp] 401 POST /login?next=%2Flab%3F (@127.0.0.1) 1.11ms referer=http://localhost:8888/login?next=%2Flab%3F
 [W 2025-10-01 13:43:01.746 ServerApp] 401 POST /login?next=%2Flab%3F (@127.0.0.1) 2.53ms referer=http://localhost:8888/login?next=%2Flab%3F
+[C 2025-10-01 13:57:00.247 ServerApp] received signal 15, stopping
+[I 2025-10-01 13:57:00.251 ServerApp] Shutting down 5 extensions
