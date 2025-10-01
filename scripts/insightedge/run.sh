@@ -11,8 +11,8 @@ CONFIG_PATH="$REPO_ROOT/scripts/insightedge/config.json"
 LOG_DIR="$REPO_ROOT/logs"
 JUPYTER_PORT=8888
 TB_PORT=6006
-RG="your-resource-group"
-WS="your-workspace-name"
+RG="automagic-rg"           # ← your real resource group name
+WS="automagic-workspace"    # ← your real Azure ML workspace name
 TARGET="cpu-cluster"
 
 mkdir -p "$LOG_DIR"
