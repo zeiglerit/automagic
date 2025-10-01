@@ -26,4 +26,5 @@ model.fit(x_train, y_train, epochs=5,
           callbacks=[tensorboard_cb])
 
 model.evaluate(x_test, y_test)
-model.save("outputs/wealthview_model")`
+model.save("outputs/mnist_model.keras")  # Recommended native format
+#model.save("outputs/wealthview_model")
