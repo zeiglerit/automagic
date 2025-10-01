@@ -1,5 +1,6 @@
-
 #!/bin/bash
+
+set -e
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../.. && pwd)"
 
@@ -8,11 +9,12 @@ yellow='\033[1;33m'
 red='\033[0;31m'
 reset='\033[0m'
 
-RG="automagic-rg"           # ← your actual resource group
-WS="automagic-workspace"    # ← your actual workspace name
-TARGET="cpu-cluster"        # ← your compute target name
+RG="automagic-rg"
+WS="automagic-workspace"
+TARGET="cpu-cluster"
+AKS_NAME="automagic-aks"
 
-echo -e "${yellow}Step 1: Stopping JupyterLab and TensorBoard${reset}"
+echo -e "${yellow}Step 1: Stopping local services (JupyterLab, TensorBoard)${reset}"
 pkill -f "jupyter-lab" && echo -e "${green}JupyterLab stopped${reset}" || echo -e "${yellow}No JupyterLab process found${reset}"
 pkill -f "tensorboard" && echo -e "${green}TensorBoard stopped${reset}" || echo -e "${yellow}No TensorBoard process found${reset}"
 
@@ -32,7 +34,15 @@ else
   echo -e "${yellow}Workspace '${WS}' not found${reset}"
 fi
 
-echo -e "${yellow}Step 4: Deleting Azure resource group '${RG}'${reset}"
+echo -e "${yellow}Step 4: Deleting AKS cluster '${AKS_NAME}'${reset}"
+if az aks show --name "$AKS_NAME" --resource-group "$RG" &>/dev/null; then
+  az aks delete --name "$AKS_NAME" --resource-group "$RG" --yes --no-wait && \
+  echo -e "${green}AKS cluster '${AKS_NAME}' deletion initiated${reset}"
+else
+  echo -e "${yellow}AKS cluster '${AKS_NAME}' not found${reset}"
+fi
+
+echo -e "${yellow}Final Step: Deleting resource group '${RG}' and all assets${reset}"
 if az group show --name "$RG" &>/dev/null; then
   az group delete --name "$RG" --yes --no-wait && \
   echo -e "${green}Resource group '${RG}' deletion initiated${reset}"
@@ -40,4 +50,4 @@ else
   echo -e "${yellow}Resource group '${RG}' not found${reset}"
 fi
 
-echo -e "${green}✅ Teardown complete. All assets removed or scheduled for deletion.${reset}"
+echo -e "${green}✅ Teardown complete. All resources removed or scheduled for deletion.${reset}"
