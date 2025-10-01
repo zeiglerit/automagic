@@ -37,12 +37,12 @@ else
   echo -e "${green}ACR '$ACR_NAME' created${reset}"
 fi
 
-echo -e "${yellow}Step 3: Building and pushing Docker image '${IMAGE_NAME}:${IMAGE_TAG}'${reset}"
-az acr login --name "$ACR_NAME"
-docker build -t "$IMAGE_NAME:$IMAGE_TAG" "$DOCKER_CONTEXT"
-docker tag "$IMAGE_NAME:$IMAGE_TAG" "$ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG"
-docker push "$ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG"
-echo -e "${green}Image pushed to ACR${reset}"
+echo -e "${yellow}Step 3: Building and pushing Docker image via ACR${reset}"
+az acr build \
+  --registry "$ACR_NAME" \
+  --image "$IMAGE_NAME:$IMAGE_TAG" \
+  "$DOCKER_CONTEXT"
+echo -e "${green}Image built and pushed via ACR${reset}"
 
 echo -e "${yellow}Step 4: Provisioning AKS cluster '${AKS_NAME}'${reset}"
 if az aks show --name "$AKS_NAME" --resource-group "$RG" &>/dev/null; then
