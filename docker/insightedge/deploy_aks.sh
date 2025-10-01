@@ -19,7 +19,7 @@ VM_SIZE="Standard_B2s"
 NODE_COUNT=1
 K8S_VERSION="1.33.3"
 K8S_JOB_PATH="$REPO_ROOT/k8s/train-job.yaml"
-DOCKER_CONTEXT="$REPO_ROOT/docker/insightedge"
+DOCKER_CONTEXT="$REPO_ROOT"
 
 echo -e "${yellow}Step 1: Creating resource group '${RG}' if missing${reset}"
 az group show --name "$RG" &>/dev/null || az group create --name "$RG" --location "$LOCATION"
@@ -41,7 +41,7 @@ echo -e "${yellow}Step 3: Building and pushing Docker image via ACR${reset}"
 az acr build \
   --registry "$ACR_NAME" \
   --image "$IMAGE_NAME:$IMAGE_TAG" \
-  "$DOCKER_CONTEXT"
+  "$REPO_ROOT"
 echo -e "${green}Image built and pushed via ACR${reset}"
 
 echo -e "${yellow}Step 4: Provisioning AKS cluster '${AKS_NAME}'${reset}"
