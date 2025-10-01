@@ -38,9 +38,8 @@ else
 fi
 
 echo -e "${yellow}Step 2.5: Autogenerating requirements.txt${reset}"
-REQ_PATH="$REPO_ROOT/requirements.txt"
-python3 -m pipreqs.pipreqs --force --savepath "$REQ_PATH" "$REPO_ROOT"
-echo -e "${green}requirements.txt generated at $REQ_PATH${reset}"
+python3 -m pipreqs.pipreqs --force --savepath "$REPO_ROOT/requirements.txt" "$REPO_ROOT"
+echo -e "${green}requirements.txt generated${reset}"
 
 echo -e "${yellow}Step 3: Building and pushing Docker image via ACR${reset}"
 az acr build \

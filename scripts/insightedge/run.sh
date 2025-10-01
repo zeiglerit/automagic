@@ -17,6 +17,12 @@ TARGET="cpu-cluster"
 VM_SIZE="Standard_B2s"
 LOCATION="eastus"
 
+echo "Checking for pipreqs..."
+if ! command -v pipreqs &>/dev/null; then
+  echo "Installing pipreqs..."
+  pip install pipreqs
+fi
+
 mkdir -p "$LOG_DIR"
 
 echo -e "${yellow}Step 1/4: Training InsightEdge model${reset}"
