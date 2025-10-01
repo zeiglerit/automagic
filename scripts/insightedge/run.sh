@@ -27,5 +27,9 @@ az ml job create --file "$REPO_ROOT/deploy/job.yml" \
 echo -e "${green}Completed 3/4${reset}"
 
 echo -e "${yellow}Step 4/4: Launching JupyterLab${reset}"
-jupyter lab --no-browser --ip=127.0.0.1 --port=8888 || echo -e "${red}JupyterLab failed to launch${reset}"
-echo -e "${green}Completed 4/4${reset}"
+if pgrep -f "jupyter-lab.*--port=$JUPYTER_PORT" > /dev/null; then
+  echo -e "${green}JupyterLab already running at http://localhost:$JUPYTER_PORT${reset}"
+else
+  nohup jupyter lab --no-browser --ip=127.0.0.1 --port=$JUPYTER_PORT > "$LOG_DIR/jupyter.out" 2>&1 &
+  echo -e "${green}JupyterLab started at http://localhost:$JUPYTER_PORT${reset}"
+fi
