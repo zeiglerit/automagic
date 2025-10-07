@@ -7,3 +7,6 @@ terraform.tfstate.*
 *.bak
 tools/google-cloud-sdk/
 **/google-cloud-sdk/
+
+# Hugging Face token and env config
+.env

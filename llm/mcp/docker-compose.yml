@@ -1,7 +1,17 @@
+
+
 version: '3.8'
 services:
   openllm:
-    build: ./openllm
+    build:
+      context: ./openllm
+      dockerfile: Dockerfile
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+    volumes:
+      - ./openllm:/app
+
+      #build: ./openllm
     ports:
       - "3000:3000"
     restart: unless-stopped
