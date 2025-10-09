@@ -24,3 +24,8 @@ variable "lambda_functions" {
   description = "Map of Lambda function names to their S3 zip paths"
   type        = map(string)
 }
+
+variable "lambda_trust_policy" {
+  description = "Trust policy for Lambda role"
+  type        = string
+}

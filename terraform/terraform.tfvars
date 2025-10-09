@@ -14,3 +14,5 @@ lambda_functions = {
   r_lambda_custom    = "r_lambda.zip"
   python_ai_lambda   = "python_ai_lambda.zip"
 }
+
+#lambda_trust_policy = file("${path.module}/policies/lambda_trust.json")
