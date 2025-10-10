@@ -7,7 +7,7 @@ az resource list --output table
 
 list_resources() {
     local subscription="$1"
-    echo -e "\n🔹 Subscription: $subscription"
+    echo -e "\n Subscription: $subscription"
     az account set --subscription "$subscription"
 
     rg_list=$(az group list --query "[].name" -o tsv)
