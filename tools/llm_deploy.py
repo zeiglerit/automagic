@@ -35,12 +35,12 @@ def load_json(path):
 
 def pull_model(url):
     model_name = url.strip().split('/')[-1]
-    print(f"📥 Pulling model '{model_name}' from {url}...")
+    print(f"Pulling model '{model_name}' from {url}...")
     subprocess.run(['ollama', 'pull', model_name], check=True)
 
 def train_model(data_path):
     ext = Path(data_path).suffix.lower()
-    print(f"🧪 Loading training data from {data_path}...")
+    print(f"Loading training data from {data_path}...")
 
     if ext == '.json':
         data = load_json(data_path)
@@ -62,11 +62,11 @@ def train_model(data_path):
         conn.close()
 
     else:
-        print(f"❌ Unsupported training file type: {ext}")
+        print(f"Unsupported training file type: {ext}")
         sys.exit(1)
 
     # Placeholder for actual training logic
-    print("⚙️ Training data loaded (showing first 3 entries):")
+    print("Training data loaded (showing first 3 entries):")
     if isinstance(data, list):
         print(json.dumps(data[:3], indent=2))
     else:
@@ -79,7 +79,7 @@ def interact_with_model(prompt, system_message=None):
     messages.append({'role': 'user', 'content': prompt})
 
     response = chat(model='llama3', messages=messages)
-    print(f"\n�� Response:\n{response['message']['content']}")
+    print(f"\n Response:\n{response['message']['content']}")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -112,7 +112,7 @@ Examples:
         interact_with_model(args.prompt, args.system_message)
 
     if not any([args.pull, args.train, args.prompt]):
-        print("⚠️ No action specified. Use --prompt, --train, or --pull. Run with --help for examples.")
+        print("No action specified. Use --prompt, --train, or --pull. Run with --help for examples.")
         sys.exit(1)
 
 if __name__ == "__main__":
