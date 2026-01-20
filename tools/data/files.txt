@@ -1,0 +1,11 @@
+repo/test/docker-compose.yaml
+repo/prod/apps/llm-primary/deployment.yaml
+repo/prod/apps/llm-primary/service.yaml
+repo/prod/apps/llm-coding/
+repo/prod/apps/llm-finance/
+repo/prod/apps/mcp/deployment.yaml
+repo/prod/apps/mcp/service.yaml
+repo/prod/apps/mcp/config.yaml
+repo/prod/app-of-apps.yaml
+repo/prod/namespace.yaml
+repo/README.md

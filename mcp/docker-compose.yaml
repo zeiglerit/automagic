@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  mcp-ui-server:
+    image: ubuntu:22.04
+    container_name: mcp-ui-server
+    ports:
+      - "3000:3000"   # UI
+      - "8000:8000"   # MCP server
+    volumes:
+      - ./mcp-server:/opt/mcp
+    command: >
+      bash -c "
+        # Start MCP server
+        /opt/mcp/mcp-server --port 8000 &
+
+        # Start UI (Open WebUI)
+        /opt/open-webui/start.sh
+      "

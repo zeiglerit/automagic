@@ -1,0 +1,806 @@
+# =====================================================================
+# UNIFIED CODE DOCUMENT
+# Repository: /repo-root
+# Pipelines:
+#   - config-normalization-opa_1
+#   - policy-packaging_2
+#   - aap-enforcement_3
+# =====================================================================
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/normalizer/main.py
+# Usage: Entry point for config normalization. Detects file type,
+#        parses config, normalizes to canonical JSON, and prints
+#        or writes output for downstream Rego/OPA.
+--------------------------------------------------------------------
+import json
+import sys
+from pathlib import Path
+
+from detectors.file_type import detect_file_type
+from parsers.yaml_parser import YamlParser
+from parsers.json_parser import JsonParser
+from parsers.ini_parser import IniParser
+from parsers.tf_parser import TerraformParser
+from normalizers.cloud_normalizer import CloudNormalizer
+from normalizers.k8s_normalizer import K8sNormalizer
+from normalizers.os_normalizer import OSNormalizer
+from normalizers.network_normalizer import NetworkNormalizer
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
+PARSERS = {
+    "yaml": YamlParser(),
+    "json": JsonParser(),
+    "ini": IniParser(),
+    "tf": TerraformParser(),
+}
+
+NORMALIZERS = {
+    "cloud": CloudNormalizer(),
+    "k8s": K8sNormalizer(),
+    "os": OSNormalizer(),
+    "network": NetworkNormalizer(),
+}
+
+
+def normalize_config(input_path: str, domain: str) -> dict:
+    path = Path(input_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Input file not found: {path}")
+
+    file_type = detect_file_type(path)
+    if file_type not in PARSERS:
+        raise ValueError(f"Unsupported file type: {file_type}")
+
+    parser = PARSERS[file_type]
+    raw_config = parser.parse(path)
+
+    if domain not in NORMALIZERS:
+        raise ValueError(f"Unsupported domain: {domain}")
+
+    normalizer = NORMALIZERS[domain]
+    canonical = normalizer.to_canonical(raw_config, source=str(path))
+
+    return canonical
+
+
+def main():
+    if len(sys.argv) < 3:
+        print("Usage: python main.py <input_file> <domain>")
+        print("Example: python main.py examples/sg.tf cloud")
+        sys.exit(1)
+
+    input_file = sys.argv[1]
+    domain = sys.argv[2]
+
+    logger.info("Normalizing config: %s (domain=%s)", input_file, domain)
+    canonical = normalize_config(input_file, domain)
+    print(json.dumps(canonical, indent=2))
+
+
+if __name__ == "__main__":
+    main()
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/normalizer/detectors/file_type.py
+# Usage: Lightweight file type detection based on extension and
+#        simple content heuristics.
+--------------------------------------------------------------------
+from pathlib import Path
+
+
+def detect_file_type(path: Path) -> str:
+    suffix = path.suffix.lower()
+
+    if suffix in [".yaml", ".yml"]:
+        return "yaml"
+    if suffix == ".json":
+        return "json"
+    if suffix in [".ini", ".cfg", ".conf"]:
+        return "ini"
+    if suffix in [".tf", ".tf.json"]:
+        return "tf"
+
+    # Fallback: naive content sniffing if needed
+    text = path.read_text(encoding="utf-8", errors="ignore").strip()
+    if text.startswith("{") or text.startswith("["):
+        return "json"
+    if ":" in text and "\n" in text:
+        return "yaml"
+
+    raise ValueError(f"Unable to detect file type for: {path}")
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/normalizer/parsers/yaml_parser.py
+# Usage: YAML parser wrapper. Returns a native Python dict/list.
+--------------------------------------------------------------------
+import yaml
+from pathlib import Path
+
+
+class YamlParser:
+    def parse(self, path: Path):
+        with path.open("r", encoding="utf-8") as f:
+            return yaml.safe_load(f) or {}
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/normalizer/parsers/json_parser.py
+# Usage: JSON parser wrapper. Returns a native Python dict/list.
+--------------------------------------------------------------------
+import json
+from pathlib import Path
+
+
+class JsonParser:
+    def parse(self, path: Path):
+        with path.open("r", encoding="utf-8") as f:
+            return json.load(f)
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/normalizer/parsers/ini_parser.py
+# Usage: INI-style parser. Useful for sshd_config-like structures.
+--------------------------------------------------------------------
+import configparser
+from pathlib import Path
+
+
+class IniParser:
+    def parse(self, path: Path):
+        config = configparser.ConfigParser()
+        config.read(path, encoding="utf-8")
+        data = {}
+        for section in config.sections():
+            data[section] = dict(config.items(section))
+        return data
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/normalizer/parsers/tf_parser.py
+# Usage: Terraform parser placeholder. In a real implementation,
+#        you’d use an HCL parser or terraform show -json output.
+--------------------------------------------------------------------
+from pathlib import Path
+import json
+
+
+class TerraformParser:
+    def parse(self, path: Path):
+        # Placeholder: expects terraform show -json style content
+        # or pre-rendered JSON plan for simplicity.
+        text = path.read_text(encoding="utf-8")
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            # In a real implementation, integrate an HCL parser here.
+            raise ValueError("TerraformParser expects JSON-formatted content.")
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/normalizer/normalizers/cloud_normalizer.py
+# Usage: Normalize cloud configs (e.g., Terraform JSON plan) into
+#        a canonical schema with metadata, spec, and security.
+--------------------------------------------------------------------
+from typing import Any, Dict
+from utils.flatten import flatten_dict
+
+
+class CloudNormalizer:
+    def to_canonical(self, raw: Any, source: str) -> Dict[str, Any]:
+        # Highly simplified schema; extend as needed.
+        flattened = flatten_dict(raw)
+
+        canonical = {
+            "source": {
+                "type": "cloud",
+                "origin": source,
+            },
+            "metadata": {
+                "provider": self._detect_provider(flattened),
+            },
+            "spec": {
+                "raw": raw,
+            },
+            "security": {
+                "findings": [],
+            },
+        }
+        return canonical
+
+    def _detect_provider(self, flat: Dict[str, Any]) -> str:
+        keys = " ".join(flat.keys())
+        if "aws_" in keys:
+            return "aws"
+        if "azurerm_" in keys:
+            return "azure"
+        if "google_" in keys:
+            return "gcp"
+        return "unknown"
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/normalizer/normalizers/k8s_normalizer.py
+# Usage: Normalize Kubernetes manifests into canonical schema.
+--------------------------------------------------------------------
+from typing import Any, Dict
+
+
+class K8sNormalizer:
+    def to_canonical(self, raw: Any, source: str) -> Dict[str, Any]:
+        canonical = {
+            "source": {
+                "type": "k8s",
+                "origin": source,
+            },
+            "metadata": {
+                "apiVersion": raw.get("apiVersion"),
+                "kind": raw.get("kind"),
+                "name": raw.get("metadata", {}).get("name"),
+                "namespace": raw.get("metadata", {}).get("namespace"),
+            },
+            "spec": {
+                "raw": raw,
+            },
+            "security": {
+                "findings": [],
+            },
+        }
+        return canonical
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/normalizer/normalizers/os_normalizer.py
+# Usage: Normalize OS-level config (e.g., sshd_config) into canonical schema.
+--------------------------------------------------------------------
+from typing import Any, Dict
+
+
+class OSNormalizer:
+    def to_canonical(self, raw: Any, source: str) -> Dict[str, Any]:
+        canonical = {
+            "source": {
+                "type": "os",
+                "origin": source,
+            },
+            "metadata": {},
+            "spec": {
+                "raw": raw,
+            },
+            "security": {
+                "findings": [],
+            },
+        }
+        return canonical
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/normalizer/normalizers/network_normalizer.py
+# Usage: Normalize network configs (e.g., security groups, NSGs).
+--------------------------------------------------------------------
+from typing import Any, Dict
+
+
+class NetworkNormalizer:
+    def to_canonical(self, raw: Any, source: str) -> Dict[str, Any]:
+        canonical = {
+            "source": {
+                "type": "network",
+                "origin": source,
+            },
+            "metadata": {},
+            "spec": {
+                "raw": raw,
+            },
+            "security": {
+                "findings": [],
+            },
+        }
+        return canonical
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/normalizer/utils/logger.py
+# Usage: Shared logging utility.
+--------------------------------------------------------------------
+import logging
+import sys
+
+
+def get_logger(name: str) -> logging.Logger:
+    logger = logging.getLogger(name)
+    if logger.handlers:
+        return logger
+
+    handler = logging.StreamHandler(sys.stdout)
+    formatter = logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(name)s - %(message)s"
+    )
+    handler.setFormatter(formatter)
+
+    logger.setLevel(logging.INFO)
+    logger.addHandler(handler)
+    return logger
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/normalizer/utils/flatten.py
+# Usage: Flatten nested dictionaries for provider detection and
+#        lightweight introspection.
+--------------------------------------------------------------------
+from typing import Any, Dict
+
+
+def flatten_dict(data: Any, parent_key: str = "", sep: str = ".") -> Dict[str, Any]:
+    items = {}
+    if isinstance(data, dict):
+        for k, v in data.items():
+            new_key = f"{parent_key}{sep}{k}" if parent_key else k
+            items.update(flatten_dict(v, new_key, sep=sep))
+    elif isinstance(data, list):
+        for idx, v in enumerate(data):
+            new_key = f"{parent_key}{sep}{idx}" if parent_key else str(idx)
+            items.update(flatten_dict(v, new_key, sep=sep))
+    else:
+        items[parent_key] = data
+    return items
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/schemas/canonical_schema.json
+# Usage: Canonical JSON schema for normalized configs.
+# Note: This is a JSON file; content here is informational.
+--------------------------------------------------------------------
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CanonicalConfig",
+  "type": "object",
+  "required": ["source", "spec"],
+  "properties": {
+    "source": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "origin": { "type": "string" }
+      },
+      "required": ["type", "origin"]
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "security": {
+      "type": "object",
+      "properties": {
+        "findings": {
+          "type": "array",
+          "items": { "type": "object" }
+        }
+      },
+      "required": ["findings"]
+    }
+  }
+}
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/rego-generator/generate_rego.py
+# Usage: Simple Rego generator that creates a baseline policy
+#        stub for a given canonical input type.
+--------------------------------------------------------------------
+from pathlib import Path
+import textwrap
+
+
+def generate_rego_package(package_name: str, input_type: str) -> str:
+    return textwrap.dedent(
+        f"""
+        package {package_name}
+
+        default deny := false
+
+        # Input is expected to conform to the canonical schema
+        # and be of type "{input_type}"
+
+        deny[msg] {{
+          input.source.type == "{input_type}"
+          msg := "Example deny rule. Replace with real logic."
+        }}
+        """
+    ).strip() + "\n"
+
+
+def write_rego_stub(output_path: str, package_name: str, input_type: str) -> None:
+    rego_code = generate_rego_package(package_name, input_type)
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(rego_code, encoding="utf-8")
+
+
+if __name__ == "__main__":
+    # Minimal CLI behavior
+    import sys
+
+    if len(sys.argv) < 4:
+        print("Usage: python generate_rego.py <output_path> <package_name> <input_type>")
+        sys.exit(1)
+
+    write_rego_stub(sys.argv[1], sys.argv[2], sys.argv[3])
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/opa-tests/example_policy_test.rego
+# Usage: Example OPA unit test file for generated/handwritten policies.
+--------------------------------------------------------------------
+package example_policy_test
+
+import data.example_policy
+
+test_default_deny_is_false {
+  not example_policy.deny
+}
+
+test_example_deny_message {
+  some msg
+  input := {{
+    "source": {{
+      "type": "cloud",
+      "origin": "test"
+    }},
+    "spec": {{}}
+  }}
+  example_policy.deny[msg] with input as input
+}
+
+--------------------------------------------------------------------
+# File: /config-normalization-opa_1/pac-guardrails/pipeline_guardrails.rego
+# Usage: Guardrails for the config-normalization-opa_1 pipeline.
+#        Evaluate which inputs, branches, or changes are allowed.
+--------------------------------------------------------------------
+package pac.guardrails.config_normalization
+
+default allow := false
+
+# Example: only allow normalization from trusted branches
+allow {{
+  input.pipeline.name == "config-normalization-opa_1"
+  startswith(input.git.branch, "refs/heads/main")
+}}
+
+deny[msg] {{
+  not allow
+  msg := sprintf("Pipeline %v denied for branch %v", [input.pipeline.name, input.git.branch])
+}}
+
+--------------------------------------------------------------------
+# File: /policy-packaging_2/broker/broker.py
+# Usage: Broker entry point. Reads Rego from Git checkout,
+#        builds in-memory model, and hands it to policybook builder.
+--------------------------------------------------------------------
+from pathlib import Path
+from typing import List, Dict
+
+from policy_loader import load_policies
+from metadata_builder import build_metadata
+from utils.logger import get_logger as get_shared_logger  # reuse logging
+
+
+logger = get_shared_logger(__name__)
+
+
+def broker_main(policies_dir: str, output_dir: str) -> None:
+    policies_path = Path(policies_dir)
+    output_path = Path(output_dir)
+
+    logger.info("Loading policies from %s", policies_path)
+    policies = load_policies(policies_path)
+
+    logger.info("Building metadata for %d policies", len(policies))
+    metadata = build_metadata(policies)
+
+    logger.info("Preparing policybook artifacts")
+    from policybook_builder.build_policybook import build_policybooks
+
+    build_policybooks(policies, metadata, output_path)
+    logger.info("Policybooks written to %s", output_path)
+
+
+if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) < 3:
+        print("Usage: python broker.py <policies_dir> <output_dir>")
+        sys.exit(1)
+
+    broker_main(sys.argv[1], sys.argv[2])
+
+--------------------------------------------------------------------
+# File: /policy-packaging_2/broker/policy_loader.py
+# Usage: Load Rego policy files from a directory tree.
+--------------------------------------------------------------------
+from pathlib import Path
+from typing import Dict
+
+
+def load_policies(base_dir: Path) -> Dict[str, str]:
+    policies = {}
+    for path in base_dir.rglob("*.rego"):
+        rel = path.relative_to(base_dir)
+        policies[str(rel)] = path.read_text(encoding="utf-8")
+    return policies
+
+--------------------------------------------------------------------
+# File: /policy-packaging_2/broker/metadata_builder.py
+# Usage: Build simple metadata (e.g., policy IDs, package names).
+--------------------------------------------------------------------
+from typing import Dict, Any
+
+
+def build_metadata(policies: Dict[str, str]) -> Dict[str, Any]:
+    meta = {}
+    for rel_path, content in policies.items():
+        # Naive package extraction; real implementation should parse Rego.
+        package_line = next(
+            (line for line in content.splitlines() if line.strip().startswith("package ")),
+            "package unknown",
+        )
+        package_name = package_line.split("package", 1)[1].strip()
+        meta[rel_path] = {
+            "package": package_name,
+        }
+    return meta
+
+--------------------------------------------------------------------
+# File: /policy-packaging_2/policybook-builder/build_policybook.py
+# Usage: Build AAP policybook-like structures from policies + metadata.
+--------------------------------------------------------------------
+from pathlib import Path
+from typing import Dict, Any
+import json
+
+
+def build_policybooks(
+    policies: Dict[str, str],
+    metadata: Dict[str, Any],
+    output_dir: Path,
+) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Very simple: one bundle.json listing all policies.
+    bundle = {
+        "policies": [],
+    }
+
+    for rel_path, content in policies.items():
+        bundle["policies"].append(
+            {
+                "path": rel_path,
+                "package": metadata[rel_path]["package"],
+                "content": content,
+            }
+        )
+
+    bundle_path = output_dir / "bundle.json"
+    bundle_path.write_text(json.dumps(bundle, indent=2), encoding="utf-8")
+
+--------------------------------------------------------------------
+# File: /policy-packaging_2/ansible/playbooks/deploy_policybook.yml
+# Usage: Ansible playbook to upload policybooks/bundles into AAP.
+--------------------------------------------------------------------
+# ---
+# - name: Deploy AAP policybooks
+#   hosts: localhost
+#   gather_facts: no
+#
+#   vars:
+#     policybook_dir: "{{ policybook_dir | default('../output') }}"
+#
+#   tasks:
+#     - name: Find policybook bundle
+#       find:
+#         paths: "{{ policybook_dir }}"
+#         patterns: "bundle.json"
+#       register: bundle_files
+#
+#     - name: Fail if no bundle found
+#       fail:
+#         msg: "No bundle.json found in policybook_dir={{ policybook_dir }}"
+#       when: bundle_files.matched == 0
+#
+#     - name: Debug bundle path
+#       debug:
+#         var: bundle_files.files[0].path
+#
+#     # Placeholder: add module/task to POST bundle to AAP via API
+
+--------------------------------------------------------------------
+# File: /policy-packaging_2/pac-guardrails/ansible_guardrails.rego
+# Usage: Guardrails for the Ansible pipeline. Evaluate playbook,
+#        inventory, and pipeline metadata before deployment.
+--------------------------------------------------------------------
+package pac.guardrails.policy_packaging
+
+default allow := false
+
+# Example: Ensure only specific playbook paths are allowed
+allow {{
+  input.pipeline.name == "policy-packaging_2"
+  startswith(input.ansible.playbook_path, "policy-packaging_2/ansible/playbooks/")
+}}
+
+deny[msg] {{
+  not allow
+  msg := sprintf("Playbook %v not allowed for pipeline %v",
+                 [input.ansible.playbook_path, input.pipeline.name])
+}}
+
+--------------------------------------------------------------------
+# File: /aap-enforcement_3/aap-config/example_aap_config.yaml
+# Usage: Placeholder AAP configuration file location.
+--------------------------------------------------------------------
+# ---
+# aap:
+#   url: "https://aap.example.com"
+#   organization: "example-org"
+#   project: "policy-enforcement"
+#   inventory: "default"
+
+--------------------------------------------------------------------
+# File: /policies/cloud/example_cloud_policy.rego
+# Usage: Example business-plane Rego policy for cloud inputs.
+--------------------------------------------------------------------
+package policies.cloud.example
+
+default deny := false
+
+deny[msg] {{
+  input.source.type == "cloud"
+  input.metadata.provider == "aws"
+  msg := "Example deny for AWS cloud input."
+}}
+
+--------------------------------------------------------------------
+# File: /tests/config-normalization-opa_1/test_normalizer_basic.py
+# Usage: Example unit test for the normalizer pipeline.
+--------------------------------------------------------------------
+import json
+from pathlib import Path
+
+from config-normalization-opa_1.normalizer.main import normalize_config
+
+
+def test_normalize_cloud_tf(tmp_path: Path):
+    sample = {{
+        "resource": {{
+            "aws_s3_bucket": {{
+                "example": {{
+                    "bucket": "my-bucket"
+                }}
+            }}
+        }}
+    }}
+    tf_path = tmp_path / "plan.json"
+    tf_path.write_text(json.dumps(sample), encoding="utf-8")
+
+    result = normalize_config(str(tf_path), "cloud")
+
+    assert result["source"]["type"] == "cloud"
+    assert result["source"]["origin"].endswith("plan.json")
+
+--------------------------------------------------------------------
+# File: /tests/policy-packaging_2/test_policy_loader.py
+# Usage: Example unit test for policy_loader.
+--------------------------------------------------------------------
+from pathlib import Path
+from policy-packaging_2.broker.policy_loader import load_policies
+
+
+def test_load_policies(tmp_path: Path):
+    policies_dir = tmp_path / "policies"
+    policies_dir.mkdir()
+    policy_file = policies_dir / "test.rego"
+    policy_file.write_text("package test\n", encoding="utf-8")
+
+    result = load_policies(policies_dir)
+    assert "test.rego" in result
+    assert "package test" in result["test.rego"]
+
+--------------------------------------------------------------------
+# File: /tests/aap-enforcement_3/test_placeholder.py
+# Usage: Placeholder test for AAP enforcement. Extend with real checks.
+--------------------------------------------------------------------
+def test_placeholder():
+    assert True
+
+--------------------------------------------------------------------
+# File: /deployment/terraform/main.tf
+# Usage: Placeholder Terraform root file for provisioning infra for
+#        these pipelines (e.g., AAP, runners, storage). Not fully implemented.
+--------------------------------------------------------------------
+# terraform {
+#   required_version = ">= 1.5.0"
+#   required_providers {
+#     azurerm = {
+#       source  = "hashicorp/azurerm"
+#       version = "~> 3.0"
+#     }
+#   }
+# }
+#
+# provider "azurerm" {
+#   features {}
+# }
+#
+# # Add resources here for AAP, bastion hosts, storage, etc.
+
+--------------------------------------------------------------------
+# File: /deployment/ansible/bootstrap.yml
+# Usage: Ansible playbook to bootstrap initial directories, keys,
+#        or base configs. Stub only.
+--------------------------------------------------------------------
+# ---
+# - name: Bootstrap policy automation environment
+#   hosts: localhost
+#   gather_facts: no
+#
+#   tasks:
+#     - name: Ensure base directories exist
+#       file:
+#         path: "{{ item }}"
+#         state: directory
+#         mode: "0755"
+#       loop:
+#         - "{{ playbook_dir }}/../../config-normalization-opa_1"
+#         - "{{ playbook_dir }}/../../policy-packaging_2"
+#         - "{{ playbook_dir }}/../../aap-enforcement_3"
+
+--------------------------------------------------------------------
+# File: /README.md
+# Usage: Root README for the repository. Mirrors the white paper summary.
+--------------------------------------------------------------------
+# Unified Policy Automation & Enforcement Repository
+
+This repository contains a complete, modular, multi‑pipeline system for:
+
+1. Normalizing any configuration or IaC into canonical JSON
+2. Generating and validating Rego policies using OPA and PaC
+3. Packaging and deploying policies to Ansible Automation Platform (AAP)
+4. Enforcing policies at runtime across infrastructure, cloud, and applications
+
+## Pipelines
+
+### config-normalization-opa_1
+Location: /config-normalization-opa_1/
+
+Converts any config → JSON → Rego → OPA/PAC → Git.
+
+### policy-packaging_2
+Location: /policy-packaging_2/
+
+Takes Rego from Git → Python broker → Ansible → AAP policybooks.
+
+### aap-enforcement_3
+Location: /aap-enforcement_3/
+
+AAP loads and enforces Rego bundles continuously.
+
+## Deployment
+Location: /deployment/
+
+Contains Terraform, Ansible, and bootstrap scripts for provisioning and 
+initializing the system.
+
+## Policies
+Location: /policies/
+
+Contains business-plane Rego policies organized by domain.
+
+## Tests
+Location: /tests/
+
+Contains unit tests for all pipelines and components.
+
+## Documentation
+Location: /docs/
+
+Contains architecture diagrams, pipeline descriptions, governance models, 
+and white papers.
+
+# =====================================================================
+# END OF UNIFIED CODE DOCUMENT
+# =====================================================================

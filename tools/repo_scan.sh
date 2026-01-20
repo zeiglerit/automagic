@@ -21,4 +21,4 @@ for pattern in "${PATTERNS[@]}"; do
   grep -rIn --exclude-dir={.git,__pycache__,node_modules,venv} --color=always "$pattern" . || true
 done
 
-echo "✅ Scan complete."
+echo "Scan complete."
