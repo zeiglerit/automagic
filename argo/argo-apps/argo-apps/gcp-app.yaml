@@ -1,0 +1,14 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: helpdesk-llm-gcp
+spec:
+  project: default
+  source:
+    repoURL: REPLACE_WITH_GIT_URL
+    path: manifests/gcp
+    targetRevision: HEAD
+  destination:
+    name: gcp
+  syncPolicy:
+    automated: {}

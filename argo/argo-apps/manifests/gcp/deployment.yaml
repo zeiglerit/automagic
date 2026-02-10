@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helpdesk-llm
+  labels:
+    app: helpdesk-llm
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: helpdesk-llm
+  template:
+    metadata:
+      labels:
+        app: helpdesk-llm
+    spec:
+      containers:
+      - name: helpdesk-llm
+        image: REPLACE_WITH_IMAGE
+        ports:
+        - containerPort: 8080
+        env:
+        - name: CLOUD_PROVIDER
+          value: "gcp"
+        - name: MODEL_NAME
+          value: "helpdesk-llm"
