@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentic-helpdesk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agentic-helpdesk
+  template:
+    metadata:
+      labels:
+        app: agentic-helpdesk
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        args:
+          - "--model"
+          - "mistral"
+          - "--max-model-len"
+          - "8192"
+        ports:
+        - containerPort: 8000
+        env:
+        - name: SYSTEM_PROMPT
+          valueFrom:
+            configMapKeyRef:
+              name: agentic-helpdesk-config
+              key: system_prompt

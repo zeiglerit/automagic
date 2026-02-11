@@ -1,0 +1,5 @@
+gitUrl: "https://github.com/zeiglerit/automagic.git"
+clusterName: "helpdesk-llm"
+region: "us-central"
+rootPath: "argo-apps"
+clusterPath: "clusters/helpdesk-llm"

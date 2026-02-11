@@ -2,13 +2,16 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: helpdesk-llm-aws
+  namespace: argocd
 spec:
   project: default
   source:
-    repoURL: REPLACE_WITH_GIT_URL
-    path: manifests/aws
+    repoURL: https://github.com/zeiglerit/automagic.git
     targetRevision: HEAD
+    path: manifests/aws
   destination:
     name: aws
   syncPolicy:
-    automated: {}
+    automated:
+      prune: true
+      selfHeal: true

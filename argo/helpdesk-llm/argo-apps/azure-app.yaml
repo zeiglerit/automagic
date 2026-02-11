@@ -2,13 +2,16 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: helpdesk-llm-azure
+  namespace: argocd
 spec:
   project: default
   source:
-    repoURL: REPLACE_WITH_GIT_URL
-    path: manifests/azure
+    repoURL: https://github.com/zeiglerit/automagic.git
     targetRevision: HEAD
+    path: manifests/azure
   destination:
     name: azure
   syncPolicy:
-    automated: {}
+    automated:
+      prune: true
+      selfHeal: true

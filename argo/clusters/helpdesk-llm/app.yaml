@@ -1,16 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: helpdesk-llm-gcp
+  name: helpdesk-llm-cluster
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/zeiglerit/automagic.git
     targetRevision: HEAD
-    path: manifests/gcp
+    path: clusters/helpdesk-llm
   destination:
-    name: gcp
+    server: https://kubernetes.default.svc
+    namespace: default
   syncPolicy:
     automated:
       prune: true
