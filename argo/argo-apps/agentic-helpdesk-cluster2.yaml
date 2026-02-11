@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: agentic-helpdesk-cluster2
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/zeiglerit/automagic.git
+    targetRevision: master
+    path: manifests/agentic-helpdesk
+  destination:
+    name: cluster2
+    namespace: agentic-helpdesk
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
