@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/zeiglerit/automagic.git
-    targetRevision: HEAD
+    targetRevision: master
     path: manifests/aws
   destination:
     name: aws
