@@ -1,32 +1,64 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
-# Always run from the directory where this script lives
-cd "$(dirname "$0")"
+set -e
 
+# === CONFIG ===
+REPO_URL="https://github.com/zeiglerit/automagic.git"
+BRANCH="master"
 APP_NAME="agentic-helpdesk"
-APP_DIR="manifests/${APP_NAME}"
-ARGO_APP_FILE="argo-apps/${APP_NAME}.yaml"
+MANIFEST_PATH="manifests/${APP_NAME}"
+ARGO_APPS_DIR="argo-apps"
 
-echo "Creating folder structure..."
-mkdir -p "${APP_DIR}"
-mkdir -p "argo-apps"
+# List your cluster names here (as registered in Argo CD)
+CLUSTERS=("cluster1" "cluster2" "cluster3")
 
-echo "Creating Argo CD Application..."
-cat > "${ARGO_APP_FILE}" <<EOF
+echo "Creating directory structure..."
+
+mkdir -p "${MANIFEST_PATH}"
+mkdir -p "${ARGO_APPS_DIR}"
+
+# === ROOT APP ===
+cat > "${ARGO_APPS_DIR}/root-app.yaml" <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ${APP_NAME}
+  name: root-app
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: https://github.com/zeiglerit/automagic.git
-    targetRevision: HEAD
-    path: manifests/${APP_NAME}
+    repoURL: ${REPO_URL}
+    targetRevision: ${BRANCH}
+    path: ${ARGO_APPS_DIR}
   destination:
     server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+EOF
+
+echo "Created root-app.yaml"
+
+# === CHILD APPS (one per cluster) ===
+for CLUSTER in "${CLUSTERS[@]}"; do
+  APP_FILE="${ARGO_APPS_DIR}/${APP_NAME}-${CLUSTER}.yaml"
+
+  cat > "${APP_FILE}" <<EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ${APP_NAME}-${CLUSTER}
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: ${REPO_URL}
+    targetRevision: ${BRANCH}
+    path: ${MANIFEST_PATH}
+  destination:
+    name: ${CLUSTER}
     namespace: ${APP_NAME}
   syncPolicy:
     automated:
@@ -34,78 +66,8 @@ spec:
       selfHeal: true
 EOF
 
-echo "Creating Deployment..."
-cat > "${APP_DIR}/deployment.yaml" <<EOF
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ${APP_NAME}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ${APP_NAME}
-  template:
-    metadata:
-      labels:
-        app: ${APP_NAME}
-    spec:
-      containers:
-      - name: vllm
-        image: vllm/vllm-openai:latest
-        args:
-          - "--model"
-          - "mistral"
-          - "--max-model-len"
-          - "8192"
-        ports:
-        - containerPort: 8000
-        env:
-        - name: SYSTEM_PROMPT
-          valueFrom:
-            configMapKeyRef:
-              name: ${APP_NAME}-config
-              key: system_prompt
-EOF
+  echo "Created ${APP_FILE}"
+done
 
-echo "Creating Service..."
-cat > "${APP_DIR}/service.yaml" <<EOF
-apiVersion: v1
-kind: Service
-metadata:
-  name: ${APP_NAME}
-spec:
-  selector:
-    app: ${APP_NAME}
-  ports:
-  - port: 8000
-    targetPort: 8000
-EOF
-
-echo "Creating ConfigMap..."
-cat > "${APP_DIR}/configmap.yaml" <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: ${APP_NAME}-config
-data:
-  system_prompt: |
-    You are AgenticHelpdeskAI, an autonomous helpdesk assistant that:
-    - Troubleshoots user issues
-    - Asks clarifying questions
-    - Uses tools when needed
-    - Maintains internal reasoning
-    - Responds concisely and professionally
-    - Improves over time based on user interactions
-EOF
-
-echo "Creating Namespace manifest..."
-cat > "${APP_DIR}/namespace.yaml" <<EOF
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: ${APP_NAME}
-EOF
-
-echo "All files created for ${APP_NAME}."
-echo "Commit and push to Git, then Argo CD will deploy automatically."
+echo "All Argo CD app files generated successfully."
+echo "Now commit + push, then sync root-app in Argo."
