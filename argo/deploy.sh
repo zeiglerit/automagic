@@ -1,88 +1,102 @@
 #!/usr/bin/env bash
 set -e
 
-APP_NAME="helpdesk-llm"
 AWS_CLUSTER="helpdesk-aws"
 AZURE_CLUSTER="helpdesk-azure"
+
 AWS_REGION="us-east-1"
 AZURE_RG="helpdesk-rg"
 AZURE_LOCATION="eastus"
 
-MODE=""
+echo "=============================================="
+echo " Checking AWS EKS Cluster"
+echo "=============================================="
 
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --mode)
-      MODE="$2"
-      shift 2
-      ;;
-    *)
-      echo "Unknown argument: $1"
-      exit 1
-      ;;
-  esac
-done
-
-if [[ -z "$MODE" ]]; then
-  echo "Usage: $0 --mode [c|d]"
-  echo "  c = create clusters + register with Argo"
-  echo "  d = deploy Argo CD root app"
-  exit 1
-fi
-
-# ---------------------------------------------------------
-# MODE: c  (Create AWS + Azure clusters + register in Argo)
-# ---------------------------------------------------------
-if [[ "$MODE" == "c" ]]; then
-
-  echo "=== Creating AWS EKS cluster using eksctl ==="
+if eksctl get cluster --name "$AWS_CLUSTER" --region "$AWS_REGION" >/dev/null 2>&1; then
+  echo "EKS cluster '$AWS_CLUSTER' already exists. Skipping creation."
+else
+  echo "Creating EKS cluster '$AWS_CLUSTER'..."
   eksctl create cluster \
     --name "$AWS_CLUSTER" \
     --region "$AWS_REGION" \
     --nodes 2 \
-    --version 1.29
+    --version 1.30
+fi
 
-  echo "AWS EKS cluster created."
+echo "Updating kubeconfig for AWS..."
+aws eks update-kubeconfig \
+  --name "$AWS_CLUSTER" \
+  --region "$AWS_REGION"
 
-  echo "=== Creating Azure AKS cluster ==="
+
+echo "=============================================="
+echo " Checking Azure AKS Cluster"
+echo "=============================================="
+
+if az group exists --name "$AZURE_RG"; then
+  echo "Azure resource group '$AZURE_RG' already exists."
+else
+  echo "Creating Azure resource group '$AZURE_RG'..."
   az group create --name "$AZURE_RG" --location "$AZURE_LOCATION"
+fi
 
+AKS_EXISTS=$(az aks list --resource-group "$AZURE_RG" --query "[?name=='$AZURE_CLUSTER'] | length(@)")
+
+if [[ "$AKS_EXISTS" -gt 0 ]]; then
+  echo "AKS cluster '$AZURE_CLUSTER' already exists. Skipping creation."
+else
+  echo "Creating AKS cluster '$AZURE_CLUSTER'..."
   az aks create \
     --resource-group "$AZURE_RG" \
     --name "$AZURE_CLUSTER" \
     --node-count 2 \
+    --node-vm-size Standard_B4ms \
     --generate-ssh-keys
+fi
 
-  echo "Fetching kubeconfig for Azure..."
-  az aks get-credentials \
-    --resource-group "$AZURE_RG" \
-    --name "$AZURE_CLUSTER" \
-    --overwrite-existing
+echo "Fetching kubeconfig for Azure..."
+az aks get-credentials \
+  --resource-group "$AZURE_RG" \
+  --name "$AZURE_CLUSTER" \
+  --overwrite-existing
 
-  echo "=== Registering clusters with Argo CD ==="
 
-  AWS_CTX=$(kubectl config get-contexts -o name | grep "$AWS_CLUSTER")
-  AZURE_CTX=$(kubectl config get-contexts -o name | grep "$AZURE_CLUSTER")
+echo "=============================================="
+echo " Registering clusters with Argo CD"
+echo "=============================================="
 
-  echo "AWS context: $AWS_CTX"
-  echo "Azure context: $AZURE_CTX"
+AWS_CTX=$(kubectl config get-contexts -o name | grep "$AWS_CLUSTER" | head -n 1)
+AZURE_CTX=$(kubectl config get-contexts -o name | grep "$AZURE_CLUSTER" | head -n 1)
 
+echo "AWS context detected:   $AWS_CTX"
+echo "Azure context detected: $AZURE_CTX"
+
+# Check if Argo already knows about AWS
+if argocd cluster list | grep -q "aws"; then
+  echo "Argo CD already has cluster 'aws' registered. Skipping."
+else
+  echo "Registering AWS cluster with Argo..."
   argocd cluster add "$AWS_CTX" --name aws --yes
+fi
+
+# Check if Argo already knows about Azure
+if argocd cluster list | grep -q "azure"; then
+  echo "Argo CD already has cluster 'azure' registered. Skipping."
+else
+  echo "Registering Azure cluster with Argo..."
   argocd cluster add "$AZURE_CTX" --name azure --yes
-
-  echo "Cluster creation + registration complete."
-  exit 0
 fi
 
-# ---------------------------------------------------------
-# MODE: d  (Deploy Argo CD root app)
-# ---------------------------------------------------------
-if [[ "$MODE" == "d" ]]; then
-  echo "Applying Argo CD root application..."
-  kubectl apply -f argo-apps/root-app.yaml
-  echo "Argo CD will now sync AWS + Azure apps."
-  exit 0
-fi
+echo "=============================================="
+echo " Deploying Argo CD Root App"
+echo "=============================================="
 
-echo "Invalid mode: $MODE"
-exit 1
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "Deploying Argo CD Root App..."
+kubectl apply -f "$SCRIPT_DIR/argo-apps/root-app.yaml"
+
+echo "Root app applied. Argo CD will now sync AWS + Azure apps."
+echo "=============================================="
+echo " Deployment Complete"
+echo "=============================================="
