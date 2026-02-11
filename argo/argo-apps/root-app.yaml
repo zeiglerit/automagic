@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/zeiglerit/automagic.git
-    targetRevision: main 
+    targetRevision: master
     path: argo-apps
   destination:
     server: https://kubernetes.default.svc
