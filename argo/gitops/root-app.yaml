@@ -9,6 +9,10 @@ spec:
     repoURL: https://github.com/zeiglerit/automagic.git
     targetRevision: master
     path: argo-apps
+    directory:
+      recurse: false
+      include: "*.yaml"
+      exclude: "cluster3.yaml"
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
