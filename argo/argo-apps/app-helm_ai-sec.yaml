@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: helm-ai-sec
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/zeiglerit/automagic.git
+    targetRevision: HEAD
+    path: helm/security-ai
+    helm:
+      valueFiles:
+      - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: security-ai
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
