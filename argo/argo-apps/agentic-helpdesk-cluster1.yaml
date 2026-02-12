@@ -10,7 +10,7 @@ spec:
     targetRevision: master
     path: manifests/agentic-helpdesk
   destination:
-    name: cluster1
+    server: https://ECAE7B13FAE9D5B2F60773F34DC16784.gr7.us-east-1.eks.amazonaws.com
     namespace: agentic-helpdesk
   syncPolicy:
     automated:

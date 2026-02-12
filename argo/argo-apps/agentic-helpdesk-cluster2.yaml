@@ -10,7 +10,7 @@ spec:
     targetRevision: master
     path: manifests/agentic-helpdesk
   destination:
-    name: cluster2
+    server: https://helpdesk-a-helpdesk-rg-3903ce-s3lxjnqp.hcp.eastus.azmk8s.io:443
     namespace: agentic-helpdesk
   syncPolicy:
     automated:
