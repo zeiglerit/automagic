@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "security-ai.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "security-ai.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "security-ai.name" . }}
+    spec:
+      containers:
+      - name: security-ai
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 80
