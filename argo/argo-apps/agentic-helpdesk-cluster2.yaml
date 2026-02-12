@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/zeiglerit/automagic.git
     targetRevision: master
-    path: manifests/agentic-helpdesk
+    path: argo/manifests/agentic-helpdesk
   destination:
     server: https://helpdesk-a-helpdesk-rg-3903ce-s3lxjnqp.hcp.eastus.azmk8s.io:443
     namespace: agentic-helpdesk
