@@ -1,9 +1,8 @@
 replicaCount: 1
 
 image:
-  repository: nginx
-  tag: latest
-  pullPolicy: IfNotPresent
+  repository: vllm/vllm-openai
+  tag: latest-cpu
 
 service:
   type: ClusterIP
