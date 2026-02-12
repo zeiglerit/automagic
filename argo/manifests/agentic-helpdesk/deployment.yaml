@@ -17,9 +17,11 @@ spec:
         image: vllm/vllm-openai:latest-cpu
         args:
           - "--model"
-          - "mistral"
+          - "mistralai/Mistral-7B-Instruct-v0.2"
           - "--max-model-len"
           - "8192"
+          - "--device"
+          - "cpu"
         ports:
         - containerPort: 8000
         env:
