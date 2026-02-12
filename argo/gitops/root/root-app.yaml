@@ -6,9 +6,13 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/your/repo.git
-    path: gitops/apps
-    targetRevision: HEAD
+    repoURL: https://github.com/zeiglerit/automagic.git
+    targetRevision: master
+    path: argo-apps
+    directory:
+      recurse: false
+      include: "*.yaml"
+      exclude: "agentic-helpdesk-cluster3.yaml"
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
