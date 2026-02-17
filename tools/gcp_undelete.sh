@@ -9,5 +9,5 @@ echo
 
 for proj in $proj_ids; do
   echo "Deleting project: $proj"
-  gcloud projects delete "$proj" --quiet
+  gcloud projects undelete "$proj" --quiet
 done
