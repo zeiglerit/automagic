@@ -1,18 +1,18 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: agentic-helpdesk-cluster3
+  name: nginx-webserver
   namespace: argocd
-spec:
+spec: 
   project: default
-  source:
+  source: 
     repoURL: https://github.com/zeiglerit/automagic.git
+    path: argo/helm/nginx-webserver
     targetRevision: master
-    path: manifests/agentic-helpdesk
-  destination:
-    name: cluster3
-    namespace: agentic-helpdesk
-  syncPolicy:
-    automated:
+  destination: 
+    server: https://kubernetes.default.svc
+    namespace: nginx-webserver
+  syncPolicy: 
+    automated: 
       prune: true
       selfHeal: true

@@ -1,22 +1,20 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
-metadata:
-  name: root-app
+metadata: 
+  name: root
   namespace: argocd
 spec:
   project: default
-  source:
+  source: 
     repoURL: https://github.com/zeiglerit/automagic.git
+    path: argo/apps
     targetRevision: master
-    path: argo/argo-apps
-    directory:
-      recurse: false
-      include: "*.yaml"
-      exclude: "agentic-helpdesk-cluster3.yaml"
-  destination:
+    directory: 
+      recurse: true
+  destination: 
     server: https://kubernetes.default.svc
     namespace: argocd
   syncPolicy:
-    automated:
+    automated: 
       prune: true
       selfHeal: true
