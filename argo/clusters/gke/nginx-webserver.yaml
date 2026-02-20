@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/zeiglerit/automagic.git
-    path: argo/helm/nginx-webserver
+    path: helm/nginx-webserver
     targetRevision: HEAD
   destination:
     server: https://34.68.169.3
