@@ -14,3 +14,8 @@ variable "zone" {
   type        = string
   default     = "us-central1-a"
 }
+
+variable "admin_ip" {
+  type        = string
+  description = "Your public IP for SSH access"
+}

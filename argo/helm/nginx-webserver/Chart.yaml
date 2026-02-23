@@ -1,5 +1,0 @@
-apiVersion: v2
-name: nginx-webserver
-description: Production-style NGINX web server
-version: 0.1.0
-appVersion: "1.25"
