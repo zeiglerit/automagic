@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ai-inference.fullname" . }}
+  labels:
+    app: {{ include "ai-inference.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "ai-inference.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "ai-inference.name" . }}
+    spec:
+      #securityContext:
+      #  runAsNonRoot: true
+      #  runAsUser: 1001
+
+      volumes:
+        - name: mlflow-data
+          emptyDir: {}
+        - name: hf-cache
+          emptyDir: {}
+
+      containers:
+
+        - name: main
+          image: ghcr.io/huggingface/text-embeddings-inference:cpu-small
+          command: ["text-embeddings-router"]
+          args:
+            - "--model-id"
+            - "sentence-transformers/all-MiniLM-L6-v2"
+          ports:
+            - containerPort: 8080
+
+        - name: mlflow-sidecar
+          image: "{{ .Values.sidecar.image.repository }}:{{ .Values.sidecar.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c"]
+          args:
+            - |
+              mkdir -p /mlflow/artifacts && \
+              mlflow server \
+                --host 0.0.0.0 \
+                --port 5000 \
+                --backend-store-uri sqlite:////mlflow/mlflow.db \
+                --default-artifact-root /mlflow/artifacts
+          ports:
+            - containerPort: 5000
+              name: mlflow
+          volumeMounts:
+            - name: mlflow-data
+              mountPath: /mlflow

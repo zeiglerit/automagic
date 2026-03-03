@@ -1,0 +1,8 @@
+apiVersion: v2
+name: ai-inference
+description: Simple AI/ML inference service with sidecar logger
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+icon: https://raw.githubusercontent.com/helm/helm/main/docs/img/helm.svg
+
