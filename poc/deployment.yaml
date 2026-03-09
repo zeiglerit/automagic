@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transaction-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: transaction-api
+  template: 
+    metadata:
+      labels: 
+        app: transaction-api
+    spec: 
+      containers: 
+      - name: api
+        image: automagic/transaction-api:latest
+        ports: 
+        - containerPort: 8000
+        
