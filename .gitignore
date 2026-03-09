@@ -5,8 +5,9 @@ terraform.tfstate
 terraform.tfstate.*
 *.log
 *.bak
+observ/nr_key.tex
 tools/google-cloud-sdk/
 **/google-cloud-sdk/
 
 # Hugging Face token and env config
-.env
+env
